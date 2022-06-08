@@ -4,8 +4,10 @@ import datetime
 import json
 
 def getTodaysIncidents(filter=None):
-  data = requests.get("http://www2.seattle.gov/fire/realtime911/getRecsForDatePub.asp?action=Today&incDate=&rad1=des")
-
+  try:
+    data = requests.get("http://www2.seattle.gov/fire/realtime911/getRecsForDatePub.asp?action=Today&incDate=&rad1=des")
+  except:
+    return
   soup = BeautifulSoup(data.content, "html.parser")
 
   table = soup.findChildren('table')[0]
@@ -55,15 +57,20 @@ def getTodaysIncidents(filter=None):
 
 def getIncidentInformation(ID):
   apparatuses = {}
-  data = requests.get("https://www2.seattle.gov/fire/IncidentSearch/incidentDetail.asp?ID="+ID)
+  try:
+    data = requests.get("https://www2.seattle.gov/fire/IncidentSearch/incidentDetail.asp?ID="+ID)
+  except:
+    return
   #https://www2.seattle.gov/fire/IncidentSearch/incidentDetail.asp?ID=F220064835
   soup = BeautifulSoup(data.content, "html.parser")
+  try:
+    table = soup.findChildren('table')[3]
 
-  table = soup.findChildren('table')[3]
-
-  rows = table.findChildren(['th','tr'])
-  incidents = []
-  data = []
+    rows = table.findChildren(['th','tr'])
+    incidents = []
+    data = []
+  except:
+    return ""
   for row in rows[1:]:
     cells = row.findChildren('td')
 
@@ -106,3 +113,71 @@ def getIncidentInformation(ID):
   incidentAlarms = int(data[11])
 
   return {"apparatusStatuses":apparatuses,"incidentID":incidentID,"incidentDate":incidentDate,"incidentTime":incidentTime,"incidentAddress":incidentAddress,"incidentType":incidentType,"incidentAlarms":incidentAlarms}
+
+
+def getLatestIncidentID():
+  return getTodaysIncidents()[0]["incidentID"]
+
+
+def replaceApprv(txt):
+  if txt.startswith("E"):
+    return txt.replace("E","Engine ")
+  elif txt.startswith("L"):
+    return txt.replace("L","Ladder ")
+  elif txt.startswith("A"):
+    return txt.replace("A","Aid ")
+  elif txt.startswith("M"):
+    return txt.replace("M","Medic ")
+  elif txt.startswith("B"):
+    return txt.replace("B","Battallion Chief ")
+  elif txt.startswith("DEP1"):
+    return txt.replace("DEP1","Deputy Chief ")
+  elif txt.startswith("SAFT2"):
+    return txt.replace("SAFT2","Safety Chief ")
+  elif txt.startswith("M44"):
+    return txt.replace("M44","EMS Supervisor 44")
+  elif txt.startswith("M45"):
+    return txt.replace("M45","EMS Supervisor 45")
+  elif txt.startswith("STAF10"):
+    return txt.replace("STAF10","ICS Support Unit 10")
+  elif txt.startswith("MAR5"):
+    return txt.replace("MAR5","Fire Investigation Unit 5")
+  elif txt.startswith("FB"):
+    return txt.replace("FB","Fireboat ")
+  elif txt.startswith("RB5"):
+    return txt.replace("RB5","Rescue Boat 5")
+  elif txt.startswith("MRN1"):
+    return txt.replace("MRN1","Marine Rescue Unit 1")
+  elif txt.startswith("R1"):
+    return txt.replace("R1","Technical Rescue Unit 1")
+  elif txt.startswith("HAZ1"):
+    return txt.replace("HAZ1","Hazmat Unit 1")
+  elif txt.startswith("H"):
+    return txt.replace("H","Mobile Health ")
+  elif txt.startswith("MIH"):
+    return txt.replace("MIH","Mobile Health Unit ")
+  elif txt.startswith("AIR"):
+    return txt.replace("AIR","Air & Light ")
+  elif txt.startswith("HOSE"):
+    return txt.replace("HOSE","Hose Wagon ")
+  elif txt.startswith("P25"):
+    return txt.replace("P25","Power Truck 25")
+  elif txt.startswith("VAULT1"):
+    return txt.replace("VAULT1","Vault Response Team 1")
+  elif txt.startswith("DECON1"):
+    return txt.replace("DECON1","Decontamination Unit 1")
+  elif txt.startswith("REHAB1"):
+    return txt.replace("REHAB1","Rehabilitation Unit 1")
+  elif txt.startswith("MCI1"):
+    return txt.replace("MCI1","Mass Casualty Unit 1")
+  elif txt.startswith("MVU1"):
+    return txt.replace("MVU1","Mobile Ventilation Unit 1")
+  elif txt.startswith("SQ"):
+    return txt.replace("SQ","Squad ")
+  elif txt.startswith("COMVAN"):
+    return txt.replace("COMVAN","Communications Van ")
+  elif txt.startswith("CHAP"):
+    return txt.replace("CHAP","Chaplain ")
+  elif txt.startswith("PIO"):
+    return txt.replace("PIO","Public Information Officer ")
+

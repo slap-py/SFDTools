@@ -30,7 +30,7 @@ async def getKey():
 @app.get("/")
 async def test(key):
   return {"Token":key,"Authorized":key in api_keys.keys()}
-
+  
 @app.get('/fire/getLatestIncidents')
 async def latestIncidents(key,count:int,filter=None):
   if checkAuthenticity(key):
